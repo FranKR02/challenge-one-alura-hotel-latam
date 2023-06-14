@@ -209,10 +209,10 @@ public class Busqueda extends JFrame {
 								break;
 							}
 						} catch (Exception ex) {
-							JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 							Busqueda busqueda = new Busqueda();
 							busqueda.setVisible(true);
 							dispose();
+							JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 						}
 						tbReservas.getModel().addTableModelListener(this);
 					}
@@ -296,7 +296,6 @@ public class Busqueda extends JFrame {
 						// Obtengo la fecha de nacimiento
 						Object fechaNacimientoObject = tbHuespedes.getValueAt(row, 3);
 						java.util.Date fechaNacimiento = (java.util.Date) fechaNacimientoObject;
-
 						// Formato de fechas
 						SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 						try {
@@ -332,7 +331,7 @@ public class Busqueda extends JFrame {
 								}
 
 								String fechaNacimientoStr = dateFormat.format(fechaNacimiento);
-								modelo.setValueAt(fechaNacimientoStr, row, 3);
+								modeloHuesped.setValueAt(fechaNacimientoStr, row, 3);
 								break;
 
 							// Telefono
@@ -346,10 +345,10 @@ public class Busqueda extends JFrame {
 								break;
 							}
 						} catch (Exception ex) {
-							JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 							Busqueda busqueda = new Busqueda();
 							busqueda.setVisible(true);
 							dispose();
+							JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 						}
 						tbHuespedes.getModel().addTableModelListener(this);
 					}
@@ -573,6 +572,7 @@ public class Busqueda extends JFrame {
 
 	private Huesped crearHuespedDesdeFila(Object[] fila) {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
 		try {
 			Integer idHuesped = (Integer) fila[0];
 			String nombre = (String) fila[1];
@@ -582,8 +582,9 @@ public class Busqueda extends JFrame {
 			String telefonoString = (String) fila[5];
 			Long telefono = Long.parseLong(telefonoString);
 			Integer idReserva = (Integer) fila[6];
-			return new Huesped(idHuesped, nombre.toUpperCase(), apellido.toUpperCase(), fechaNacimiento, nacionalidad, telefono, idReserva);
-		} catch (ParseException e) {
+			return new Huesped(idHuesped, nombre.toUpperCase(), apellido.toUpperCase(), fechaNacimiento, nacionalidad,
+					telefono, idReserva);
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
