@@ -106,7 +106,6 @@ public class ReservaDAO {
 			}
 		} catch (SQLException e) {
 			return 0;
-			//throw new RuntimeException(e);
 		}
 	}
 
