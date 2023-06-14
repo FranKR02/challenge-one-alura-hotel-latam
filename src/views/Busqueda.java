@@ -8,7 +8,11 @@ import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -249,7 +253,110 @@ public class Busqueda extends JFrame {
 		modeloHuesped.addColumn("Telefono");
 		modeloHuesped.addColumn("Número de Reserva");
 		tbHuespedes.setModel(modeloHuesped);
+		// ComboBox Nacionalidad
+		String[] nacionalidad = { "afgano-afgana", "alemán-", "alemana", "árabe-árabe", "argentino-argentina",
+				"australiano-australiana", "belga-belga", "boliviano-boliviana", "brasileño-brasileña",
+				"camboyano-camboyana", "canadiense-canadiense", "chileno-chilena", "chino-china",
+				"colombiano-colombiana", "coreano-coreana", "costarricense-costarricense", "cubano-cubana",
+				"danés-danesa", "ecuatoriano-ecuatoriana", "egipcio-egipcia", "salvadoreño-salvadoreña",
+				"escocés-escocesa", "español-española", "estadounidense-estadounidense", "estonio-estonia",
+				"etiope-etiope", "filipino-filipina", "finlandés-finlandesa", "francés-francesa", "galés-galesa",
+				"griego-griega", "guatemalteco-guatemalteca", "haitiano-haitiana", "holandés-holandesa",
+				"hondureño-hondureña", "indonés-indonesa", "inglés-inglesa", "iraquí-iraquí", "iraní-iraní",
+				"irlandés-irlandesa", "israelí-israelí", "italiano-italiana", "japonés-japonesa", "jordano-jordana",
+				"laosiano-laosiana", "letón-letona", "letonés-letonesa", "malayo-malaya", "marroquí-marroquí",
+				"mexicano-mexicana", "nicaragüense-nicaragüense", "noruego-noruega", "neozelandés-neozelandesa",
+				"panameño-panameña", "paraguayo-paraguaya", "peruano-peruana", "polaco-polaca", "portugués-portuguesa",
+				"puertorriqueño-puertorriqueño", "dominicano-dominicana", "rumano-rumana", "ruso-rusa", "sueco-sueca",
+				"suizo-suiza", "tailandés-tailandesa", "taiwanes-taiwanesa", "turco-turca", "ucraniano-ucraniana",
+				"uruguayo-uruguaya", "venezolano-venezolana", "vietnamita-vietnamita" };
+		comboBoxEditor = new JComboBox<>(nacionalidad);
+		cellEditor = new DefaultCellEditor(comboBoxEditor);
+		TableColumn nacionanlidadColum = tbHuespedes.getColumnModel().getColumn(4);
+		nacionanlidadColum.setCellEditor(cellEditor);
+		// Fecha
+		tbHuespedes.getColumnModel().getColumn(3).setCellEditor(dateEditor);
+
 		añadirHuespedes();
+
+		tbHuespedes.getModel().addTableModelListener(new TableModelListener() {
+			public void tableChanged(TableModelEvent e) {
+				if (e.getType() == TableModelEvent.UPDATE) {
+					// Fila y columna
+					int row = e.getFirstRow();
+					int column = e.getColumn();
+
+					if (column != 0 | column != 6) {
+						// Deshabilitar el listener temporalmente
+						tbHuespedes.getModel().removeTableModelListener(this);
+
+						// Nombre y apellido
+						String nombre = ((String) tbHuespedes.getValueAt(row, 1)).toUpperCase();
+						String apellido = ((String) tbHuespedes.getValueAt(row, 2)).toUpperCase();
+						// Obtengo la fecha de nacimiento
+						Object fechaNacimientoObject = tbHuespedes.getValueAt(row, 3);
+						java.util.Date fechaNacimiento = (java.util.Date) fechaNacimientoObject;
+
+						// Formato de fechas
+						SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+						try {
+							switch (column) {
+							// Nombre y apellido
+							case 1:
+							case 2:
+								if (nombre.isEmpty() | apellido.isEmpty()) {
+									throw new RuntimeException("Todos los campos deben estar llenos");
+								} else {
+									if (!(nombre.matches("[a-zA-Z ]+") && apellido.matches("[a-zA-Z ]+"))) {
+										throw new RuntimeException(
+												"Ingrese solo letras (incluyendo espacios) en el nombre y apellido");
+									}
+								}
+								break;
+
+							// Fecha Nacimiento
+							case 3:
+								if (fechaNacimiento == null) {
+									throw new RuntimeException("Ingrese una edad valida");
+								}
+								LocalDate fechaActual = LocalDate.now();
+								LocalDate fechaNacimientoLocalDate = fechaNacimiento.toInstant()
+										.atZone(ZoneId.systemDefault()).toLocalDate();
+								// Calcular la edad
+								Period edad = Period.between(fechaNacimientoLocalDate, fechaActual);
+								if (edad.getYears() < 18) {
+									throw new RuntimeException("Solo pueden hacer reserva los mayores de edad");
+								}
+								if (edad.getYears() > 150) {
+									throw new RuntimeException("Edad incongruente");
+								}
+
+								String fechaNacimientoStr = dateFormat.format(fechaNacimiento);
+								modelo.setValueAt(fechaNacimientoStr, row, 3);
+								break;
+
+							// Telefono
+							case 5:
+								String telefonoString = (String) tbHuespedes.getValueAt(row, 5);
+								if (!telefonoString.matches("\\d+")) {
+									throw new RuntimeException("Ingrese solo numeros en el telefono");
+								}
+								break;
+							default:
+								break;
+							}
+						} catch (Exception ex) {
+							JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+							Busqueda busqueda = new Busqueda();
+							busqueda.setVisible(true);
+							dispose();
+						}
+						tbHuespedes.getModel().addTableModelListener(this);
+					}
+				}
+			}
+		});
+
 		JScrollPane scroll_tableHuespedes = new JScrollPane(tbHuespedes);
 		panel.addTab("Huéspedes", new ImageIcon(Busqueda.class.getResource("/imagenes/pessoas.png")),
 				scroll_tableHuespedes, null);
@@ -415,61 +522,81 @@ public class Busqueda extends JFrame {
 	protected int editarDatos(JTabbedPane panel, JTable tbHuespedes, JTable tbReservas) {
 		if (panel.getSelectedIndex() == 0) {
 			int filaSeleccionada = tbReservas.getSelectedRow();
-
-			if (tbReservas.isEditing()) {
-			    tbReservas.getCellEditor().stopCellEditing(); // Finaliza la edición de la celda activa
-			}
-			tbReservas.changeSelection(filaSeleccionada, 3, false, false); // Selecciona la celda específica
-			Rectangle cellRect = tbReservas.getCellRect(filaSeleccionada, 3, false); // Obtiene el rectángulo de la celda
-			MouseEvent doubleClick = new MouseEvent(tbReservas, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(),
-			        MouseEvent.BUTTON1, cellRect.x, cellRect.y, 2, false, MouseEvent.BUTTON1); // Crea un evento de doble clic
-			tbReservas.dispatchEvent(doubleClick);
+			dejarDeEditar(tbReservas, filaSeleccionada, 3);
 
 			if (filaSeleccionada >= 0) {
+				DefaultTableModel modelo = (DefaultTableModel) tbReservas.getModel();
+				Object[] fila = obtenerDatosFila(modelo, filaSeleccionada);
 
-				Object idReserva = modelo.getValueAt(filaSeleccionada, 0);
-				Object fechaCheckIn = modelo.getValueAt(filaSeleccionada, 1);
-				Object fechaCheckOut = modelo.getValueAt(filaSeleccionada, 2);
-				Object valor = modelo.getValueAt(filaSeleccionada, 3);
-				Object formaPago = modelo.getValueAt(filaSeleccionada, 4);
-				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-				Date fechaCheckInDate = null;
-				Date fechaCheckOutDate = null;
-
-				try {
-					fechaCheckInDate = dateFormat.parse(fechaCheckIn.toString());
-					fechaCheckOutDate = dateFormat.parse(fechaCheckOut.toString());
-				} catch (java.text.ParseException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
-				Reserva reserva = new Reserva((Integer) idReserva, fechaCheckInDate, fechaCheckOutDate,
-						(String) formaPago, (Double) valor);
+				Reserva reserva = crearReservaDesdeFila(fila);
 				return reservaController.modificar(reserva);
 			} else {
 				return 0;
 			}
 		} else {
-			System.out.println("huespedes");
 			int filaSeleccionada = tbHuespedes.getSelectedRow();
-			if (filaSeleccionada != -1) {
-				// Obtener los datos de la fila seleccionada
-				Object idHuesped = modeloHuesped.getValueAt(filaSeleccionada, 0);
-				Object nombre = modeloHuesped.getValueAt(filaSeleccionada, 1);
-				Object apellido = modeloHuesped.getValueAt(filaSeleccionada, 2);
-				Object fechaNacimiento = modeloHuesped.getValueAt(filaSeleccionada, 3);
-				Object nacionalidad = modeloHuesped.getValueAt(filaSeleccionada, 4);
-				Object telefono = modeloHuesped.getValueAt(filaSeleccionada, 5);
-				Object idReserva = modeloHuesped.getValueAt(filaSeleccionada, 6);
-				Huesped huesped = new Huesped((Integer) idHuesped, (String) nombre, (String) apellido,
-						(Date) fechaNacimiento, (String) nacionalidad, (Long) telefono, (Integer) idReserva);
-				return 1;
+			dejarDeEditar(tbHuespedes, filaSeleccionada, 6);
+
+			if (filaSeleccionada >= 0) {
+				DefaultTableModel modeloHuesped = (DefaultTableModel) tbHuespedes.getModel();
+				Object[] fila = obtenerDatosFila(modeloHuesped, filaSeleccionada);
+
+				Huesped huesped = crearHuespedDesdeFila(fila);
+				return huespedController.modificar(huesped);
 			} else {
 				return 0;
 			}
 		}
+	}
 
+	private Object[] obtenerDatosFila(DefaultTableModel modelo, int fila) {
+		Object[] datos = new Object[modelo.getColumnCount()];
+		for (int i = 0; i < modelo.getColumnCount(); i++) {
+			datos[i] = modelo.getValueAt(fila, i);
+		}
+		return datos;
+	}
+
+	private Reserva crearReservaDesdeFila(Object[] fila) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		try {
+			Integer idReserva = (Integer) fila[0];
+			Date fechaCheckIn = dateFormat.parse(fila[1].toString());
+			Date fechaCheckOut = dateFormat.parse(fila[2].toString());
+			String formaPago = (String) fila[4];
+			Double valor = (Double) fila[3];
+			return new Reserva(idReserva, fechaCheckIn, fechaCheckOut, formaPago, valor);
+		} catch (ParseException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private Huesped crearHuespedDesdeFila(Object[] fila) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+		try {
+			Integer idHuesped = (Integer) fila[0];
+			String nombre = (String) fila[1];
+			String apellido = (String) fila[2];
+			Date fechaNacimiento = dateFormat.parse(fila[3].toString());
+			String nacionalidad = (String) fila[4];
+			String telefonoString = (String) fila[5];
+			Long telefono = Long.parseLong(telefonoString);
+			Integer idReserva = (Integer) fila[6];
+			return new Huesped(idHuesped, nombre.toUpperCase(), apellido.toUpperCase(), fechaNacimiento, nacionalidad, telefono, idReserva);
+		} catch (ParseException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void dejarDeEditar(JTable tb, int filaSeleccionada, int row) {
+		if (tb.isEditing()) {
+			tb.getCellEditor().stopCellEditing();
+		}
+		tb.changeSelection(filaSeleccionada, row, false, false);
+		Rectangle cellRect = tb.getCellRect(filaSeleccionada, row, false);
+		MouseEvent doubleClick = new MouseEvent(tb, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(),
+				MouseEvent.BUTTON1, cellRect.x, cellRect.y, 2, false, MouseEvent.BUTTON1);
+		tb.dispatchEvent(doubleClick);
 	}
 
 	private void añadirHuespedes() {
