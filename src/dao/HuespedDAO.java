@@ -71,4 +71,33 @@ public class HuespedDAO {
 		}
 		return null;
 	}
+
+	public int modificar(Huesped huesped) {
+		try {
+			final PreparedStatement statement = this.connection.prepareStatement("UPDATE huespedes "
+					+ "SET nombre = ?, "
+					+ "apellido = ?, "
+					+ "fechaNacimiento = ?, "
+					+ "nacionalidad = ?, "
+					+ "telefono = ?, "
+					+ "idReserva = ? "
+					+ "WHERE id = ?;");
+			try(statement){
+				java.sql.Date fechaNacimientoSQL = new java.sql.Date(huesped.getFechaNacimiento().getTime());
+				statement.setString(1, huesped.getNombre());
+				statement.setString(2, huesped.getApellido());
+				statement.setDate(3, fechaNacimientoSQL);
+				statement.setString(4, huesped.getNacionalidad());
+				statement.setLong(5, huesped.getTelefono());
+				statement.setInt(6, huesped.getidReserva());
+				statement.setInt(7, huesped.getId());
+				statement.execute();
+				return statement.getUpdateCount();
+			}
+		} catch (SQLException e) {
+			//return 0;
+			e.printStackTrace();
+		}
+		return 0;
+	}
 }
