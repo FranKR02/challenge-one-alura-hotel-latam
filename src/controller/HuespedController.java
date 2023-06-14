@@ -17,4 +17,8 @@ public class HuespedController {
 	public List<Huesped> listarHuespedes() {
 		return this.huespedDAO.listarHuespedes();
 	}
+	public int modificar(Huesped huesped) {
+		System.out.println(huesped);
+		return this.huespedDAO.modificar(huesped);
+	}
 }
