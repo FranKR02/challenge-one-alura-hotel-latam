@@ -7,6 +7,7 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionAdapter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -516,6 +517,41 @@ public class Busqueda extends JFrame {
 		lblEliminar.setBounds(0, 0, 122, 35);
 		btnEliminar.add(lblEliminar);
 		setResizable(false);
+		btnEliminar.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (eliminarDatos(panel, tbHuespedes, tbReservas) == 1) {
+					JOptionPane.showMessageDialog(null, "Eliminacion exitosa", "", JOptionPane.INFORMATION_MESSAGE);
+					Busqueda busqueda = new Busqueda();
+					busqueda.setVisible(true);
+					dispose();
+				}
+			}
+		});
+	}
+
+	protected int eliminarDatos(JTabbedPane panel, JTable tbHuespedes, JTable tbReservas) {
+		if (panel.getSelectedIndex() == 0) {
+			int filaSeleccionada = tbReservas.getSelectedRow();
+			if (filaSeleccionada >= 0) {
+				Object celdaId = modelo.getValueAt(filaSeleccionada, 0);
+				int id = (int) celdaId;
+				return reservaController.eliminar(id);
+			} else {
+				return 0;
+			}
+		} else {
+			int filaSeleccionada = tbHuespedes.getSelectedRow();
+
+			if (filaSeleccionada >= 0) {
+				Object celdaId = modeloHuesped.getValueAt(filaSeleccionada, 0);
+				int id = (int) celdaId;
+				return huespedController.eliminar(id);
+			} else {
+				return 0;
+			}
+		}
+
 	}
 
 	protected int editarDatos(JTabbedPane panel, JTable tbHuespedes, JTable tbReservas) {
