@@ -108,6 +108,19 @@ public class ReservaDAO {
 			return 0;
 		}
 	}
+	public int eliminar(int id) {
+		try {
+			final PreparedStatement statement = this.connection.prepareStatement("DELETE FROM `hotelalura`.`reservas`"
+					+ "WHERE id = ?;");
+			try(statement){
+				statement.setInt(1, id);
+				statement.execute();
+				return statement.getUpdateCount();
+			}
+		} catch (SQLException e) {
+			return 0;
+		}
+	}
 
 	
 }
