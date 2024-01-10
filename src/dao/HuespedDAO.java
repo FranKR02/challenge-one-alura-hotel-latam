@@ -68,8 +68,8 @@ public class HuespedDAO {
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
+			return null;
 		}
-		return null;
 	}
 
 	public int modificar(Huesped huesped) {
@@ -95,9 +95,23 @@ public class HuespedDAO {
 				return statement.getUpdateCount();
 			}
 		} catch (SQLException e) {
-			//return 0;
 			e.printStackTrace();
+			return 0;
 		}
-		return 0;
+	}
+
+	public int eliminar(int id) {
+		try {
+			final PreparedStatement  statement = this.connection.prepareStatement("DELETE FROM `hotelalura`.`huespedes` "
+					+ "WHERE id = ?;");
+			try(statement){
+				statement.setInt(1, id);
+				statement.execute();
+				return statement.getUpdateCount();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return 0;
+		}
 	}
 }

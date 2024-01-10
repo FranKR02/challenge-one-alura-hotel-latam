@@ -21,4 +21,7 @@ public class HuespedController {
 		System.out.println(huesped);
 		return this.huespedDAO.modificar(huesped);
 	}
+	public int eliminar(int id) {
+		return this.huespedDAO.eliminar(id);
+	}
 }
